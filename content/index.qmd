@@ -185,7 +185,7 @@ faculty_permanent |>
       cellPadding = "8px 12px"
     ),
     defaultPageSize = 10,
-    groupBy = c("location", "institution")
+    groupBy = c("location")
   )
 ```
 
@@ -289,7 +289,7 @@ postdoc |>
       cellPadding = "8px 12px"
     ),
     defaultPageSize = 10,
-    groupBy = c("location", "institution")
+    groupBy = c("location")
   )
 ```
 
