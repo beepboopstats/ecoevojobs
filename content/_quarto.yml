@@ -8,7 +8,7 @@ execute:
   warning: false
   
 website:
-  title: "Website-Title"
+  title: "Eco-Evo Jobs"
   # google-analytics: "UA-121215066-1"
   reader-mode: false
   page-footer: Beep Boop Stats
@@ -20,10 +20,6 @@ website:
     left:
       # - text: "Home"
       #   file: index.qmd
-      - text: "Book Appointments"
-        file: book_appointments.qmd
-      - text: "Instagram"
-        file: instagram.qmd
       - text: "Contact"
         file: contact/index.qmd
 
