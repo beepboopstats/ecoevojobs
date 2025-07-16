@@ -9,9 +9,9 @@ execute:
   
 website:
   title: "Eco-Evo Jobs"
-  # google-analytics: "UA-121215066-1"
+  google-analytics: "G-LXSX23EQ95"
   reader-mode: false
-  page-footer: Beep Boop Stats
+  page-footer: © Beep Boop Stats
   # top nav
   navbar:
     pinned: true
@@ -22,16 +22,14 @@ website:
       #   file: index.qmd
       - text: "Contact"
         file: contact/index.qmd
+    css: ../assets/css/styles.scss
 
 format:
   html:
     theme: 
       light: 
         - pulse
-        - assets/css/styles.scss
-      dark: 
-        - darkly
-        - assets/css/styles.scss
+        - ../assets/css/styles.scss
     fontsize: 1.1em
     page-layout: full
     toc: true
