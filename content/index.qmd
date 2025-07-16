@@ -1,43 +1,149 @@
 ---
-about:
-  template: trestles
-  id: about-block
-  image-width: 17em
-  image-shape: round
-  image: "../assets/img/my_image.jpg"
-  links:
-    - icon: linkedin
-      text: LinkedIn
-      href: https://www.linkedin.com/in/biplabendu
-    - icon: envelope
-      text: Email
-      href: "mailto:your-email-here@zzzz.com"  
+title: "Explore ecoevojobs"
+editor_options: 
+  chunk_output_type: console
+format:
+  html:
+    toc: false
 ---
 
-::: {#about-block}
-
-## Your Name, M.Tech
-
-Dude works at Beep Boop Stats. When not working, Dude enjoys 
-spending time on A, B, and C.
-
-## Experience
-
-1. Head Data Scientist, *Beep Boop Stats LLC*, April 2018 - present
-
-2. Chief Analyst, *The Other Company*, Sept 2012 - April 2018
-
-::: 
-
-
 ```{r}
-dttm <- Sys.time() |> 
-  .POSIXct("MST") |> 
-  format("%Y-%m-%d %H:%M %Z")
+library(dplyr)
 
-today <- Sys.time() |> .POSIXct("MST") |> lubridate::as_date()
+link <- "https://docs.google.com/spreadsheets/d/1PnS-tHYXNVPaSfbXT5v9qZl0T7QHH4AtwoyIJSRQ5a0/edit?gid=76501376#gid=76501376"
+
+faculty_permanent <- googlesheets4::read_sheet(
+  link,
+  sheet = 1,
+  skip = 1
+) |> 
+  janitor::clean_names() |> 
+  mutate(
+    across(
+      c(timestamp, review_date, last_update),
+      ~ lubridate::as_date(.x)
+    )
+  ) |> 
+  select(
+    timestamp:notes
+  )
+
+postdoc <- googlesheets4::read_sheet(
+  link,
+  sheet = 2,
+  skip = 1
+) |> 
+  janitor::clean_names() |> 
+  mutate(
+    across(
+      c(timestamp, review_date, last_update),
+      ~ lubridate::as_date(.x)
+    )
+  ) |> 
+  select(
+    timestamp:notes
+  )
+
 ```
 
-<p align = "right" style="font-size: 15px;">
-Last updated on `r today`
-</p>
+# GOAL
+
+Display the information related to Eco-Evo Jobs posted and maintained
+on [the googlesheet open to community](`r link`).
+
+
+# Faculty / Permanent Jobs
+
+```{r}
+faculty_permanent |> 
+  reactable::reactable(
+    style = list(fontFamily = "Work Sans, sans-serif", fontSize = "14px"),
+    sortable = TRUE,
+    resizable = TRUE,
+    filterable = TRUE,
+    searchable = TRUE,
+    columns = list(
+      url = reactable::colDef(
+        cell = function(value) {
+          htmltools::tags$a(href = value, target = "_blank", rel = "noopener noreferrer", value)
+        }
+      )
+    ),
+    striped = TRUE,
+    highlight = TRUE,
+    bordered = TRUE,
+    theme = reactable::reactableTheme(
+      borderColor = "#dfe2e5",
+      stripedColor = "#f6f8fa",
+      highlightColor = "#FDBF6F",
+      cellPadding = "8px 12px",
+      searchInputStyle = list(width = "100%")
+    ),
+    defaultPageSize = 5,
+    groupBy = c("position_type", "rank"),
+    rowStyle = function(index) {
+      list(height = "80px", whiteSpace = "normal") # Sets height to 50px for all rows
+    },
+    details = function(index) {
+      htmltools::div(
+        style = "padding: 10px;",
+        paste(
+          "More info:", 
+          if_else(
+            is.na(faculty_permanent$notes[index]),
+            "no notes available",
+            faculty_permanent$notes[index]
+          )
+        )
+      )
+    }
+  )
+```
+
+# Postdoc Jobs
+
+```{r}
+postdoc |> 
+  reactable::reactable(
+    style = list(fontFamily = "Work Sans, sans-serif", fontSize = "14px"),
+    sortable = TRUE,
+    resizable = TRUE,
+    filterable = TRUE,
+    searchable = TRUE,
+    columns = list(
+      url = reactable::colDef(
+        cell = function(value) {
+          htmltools::tags$a(href = value, target = "_blank", rel = "noopener noreferrer", value)
+        }
+      )
+    ),
+    rowStyle = function(index) {
+      list(height = "80px", whiteSpace = "normal") # Sets height to 50px for all rows
+    },
+    details = function(index) {
+      htmltools::div(
+        style = "padding: 10px;",
+        paste(
+          "More info:", 
+          if_else(
+            is.na(postdoc$notes[index]),
+            "no notes available",
+            postdoc$notes[index]
+          )
+        )
+      )
+    },
+    striped = TRUE,
+    highlight = TRUE,
+    bordered = TRUE,
+    theme = reactable::reactableTheme(
+      borderColor = "#dfe2e5",
+      stripedColor = "#f6f8fa",
+      highlightColor = "#FDBF6F",
+      cellPadding = "8px 12px",
+      searchInputStyle = list(width = "100%")
+    ),
+    defaultPageSize = 5
+  )
+```
+
