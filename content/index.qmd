@@ -9,6 +9,7 @@ format:
 
 ```{r}
 library(dplyr)
+googlesheets4::gs4_deauth()
 
 link <- "https://docs.google.com/spreadsheets/d/1PnS-tHYXNVPaSfbXT5v9qZl0T7QHH4AtwoyIJSRQ5a0/edit?gid=76501376#gid=76501376"
 
