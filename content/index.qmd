@@ -13,7 +13,8 @@ for (i in list.files(here::here("R"), full.names = TRUE)) source(i)
 
 googlesheets4::gs4_deauth()
 
-link <- "https://docs.google.com/spreadsheets/d/1PnS-tHYXNVPaSfbXT5v9qZl0T7QHH4AtwoyIJSRQ5a0/edit?gid=76501376#gid=76501376"
+# link <- "https://docs.google.com/spreadsheets/d/1PnS-tHYXNVPaSfbXT5v9qZl0T7QHH4AtwoyIJSRQ5a0/edit?gid=76501376#gid=76501376"
+link <- "https://docs.google.com/spreadsheets/u/0/d/1P7BfU0emdcGFVIWIs_erFxyy0UGXXORw7h0rpU19gQ8/htmlview#gid=1219796980"
 
 dttm <- pretty_datetime(Sys.time())
 ```
