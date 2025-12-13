@@ -13,19 +13,16 @@ for (i in list.files(here::here("R"), full.names = TRUE)) source(i)
 
 googlesheets4::gs4_deauth()
 
-# link <- "https://docs.google.com/spreadsheets/d/1PnS-tHYXNVPaSfbXT5v9qZl0T7QHH4AtwoyIJSRQ5a0/edit?gid=76501376#gid=76501376"
 link <- "https://docs.google.com/spreadsheets/u/0/d/1P7BfU0emdcGFVIWIs_erFxyy0UGXXORw7h0rpU19gQ8/htmlview#gid=1219796980"
 
+today <- Sys.Date()
 dttm <- pretty_datetime(Sys.time())
 ```
 
 Last updated on `r dttm`
 
 > Displaying the information related to Ecology and Evolutionary Biology Jobs 
-posted and maintained on [the googlesheet open to community](`r link`).
-
-
-# Faculty / Permanent Jobs
+posted and maintained on [__ecoevojobs.net__ googlesheet](`r link`).
 
 ```{r}
 faculty_permanent <- googlesheets4::read_sheet(
@@ -40,8 +37,18 @@ faculty_permanent <- googlesheets4::read_sheet(
       ~ lubridate::as_date(.x)
     )
   ) |>
+  rename(
+    notes = notes_10
+  ) |> 
   select(
     timestamp:notes
+  ) |> 
+  mutate(
+    notes = purrr::map(notes, as.character)
+  ) |> 
+  tidyr::unnest(
+    cols = notes,
+    keep_empty = TRUE
   ) |> 
   arrange(
     desc(timestamp)
@@ -62,235 +69,271 @@ postdoc <- googlesheets4::read_sheet(
   select(
     timestamp:notes
   ) |>
+  mutate(
+    notes = purrr::map(notes, as.character)
+  ) |> 
+  tidyr::unnest(
+    cols = notes,
+    keep_empty = TRUE
+  ) |> 
   arrange(
     desc(timestamp)
   )
 ```
 
+::: {.callout-tip}
+# Jobs added today
+
+### Faculty / Permanent jobs
+
 ```{r}
-faculty_permanent |>
+faculty_permanent |> 
+  filter(
+    timestamp == today
+  ) |> 
   select(
     location,
     institution,
-    timestamp,
     position_type,
     rank,
-    subject_area,
-    review_date,
-    url
-    # last_update
+    subject_area
   ) |> 
+  reactable::reactable()
+```
+
+### Postdoc jobs 
+
+```{r}
+postdoc |> 
   filter(
-    !if_any(
-      everything(),
-      ~ is.na(.x) | trimws(.x) == ""
-    )
-  ) |>
-  # mutate(
-  #   details = NA
-  # ) |> 
-  reactable::reactable(
-    style = list(fontFamily = "Work Sans, sans-serif", fontSize = "14px"),
-    sortable = TRUE,
-    resizable = TRUE,
-    filterable = TRUE,
-    searchable = TRUE,
-    columns = list(
-      url = reactable::colDef(
-        cell = function(value) {
-          htmltools::tags$a(href = value, target = "_blank", rel = "noopener noreferrer", value)
-        },
-        minWidth = 60,
-        sortable = FALSE,
-        filterable = FALSE
-      ),
-      institution = reactable::colDef(minWidth = 180),
-      timestamp = reactable::colDef(minWidth = 80),
-      review_date = reactable::colDef(minWidth = 80),
-      subject_area = reactable::colDef(minWidth = 160),
-      location = reactable::colDef(minWidth = 150),
-      rank = reactable::colDef(minWidth = 140)
-      # last_update = reactable::colDef(minWidth = 80)
-      # details = reactable::colDef(
-      #   name = "",
-      #   sortable = FALSE,
-      #   cell = function() htmltools::tags$button("Show details")
-      # )
-    ),
-    rowStyle = function(index) {
-      list(height = "100px", whiteSpace = "normal") # Sets height to 50px for all rows
-    },
-    # onClick = htmlwidgets::JS("function(rowInfo, column) {
-    # // Only handle click events on the 'details' column
-    # if (column.id !== 'details') {
-    #   return
-    # }
-    # 
-    # // Display an alert dialog with details for the row
-    # window.alert('Details for row ' + rowInfo.index + ':\\n' + JSON.stringify(rowInfo.values, null, 2))
-    # 
-    # // Send the click event to Shiny, which will be available in input$show_details
-    # // Note that the row index starts at 0 in JavaScript, so we add 1
-    # if (window.Shiny) {
-    #   Shiny.setInputValue('show_details', { index: rowInfo.index + 1 }, { priority: 'event' })
-    #   }
-    # }"),
-    details = function(index) {
-      htmltools::div(
-        style = "padding: 10px;",
-        # paste(
-        #   "More info: [Notes] ",
-        #   if_else(
-        #     is.na(faculty_permanent$notes[index]),
-        #     "not available",
-        #     faculty_permanent$notes[index]
-        #   ),
-        #   "; [Last updated on] ",
-        #   if_else(
-        #     is.na(faculty_permanent$last_update[index]),
-        #     "not available",
-        #     as.character(faculty_permanent$last_update[index])
-        #   )
-        # )
-        htmltools::tagList(
-          "More info: ",
-          htmltools::tags$br(),
-          htmltools::tags$br(),
-          "[Last updated on]",
-          htmltools::tags$br(),
-          if_else(
-            is.na(faculty_permanent$last_update[index]),
-            "not available",
-            as.character(faculty_permanent$last_update[index])
-          ),
-          htmltools::tags$br(),
-          htmltools::tags$br(),
-          "[Notes]",
-          htmltools::tags$br(),
-          if_else(
-            is.na(faculty_permanent$notes[index]),
-            "not available",
-            faculty_permanent$notes[index]
-          )
-        )
+    timestamp == today
+  ) |> 
+  select(
+    location,
+    institution,
+    subject_area,
+    pi
+  ) |> 
+  reactable::reactable()
+```
+
+See complete list and urls below.
+:::
+
+# Faculty / Permanent Jobs
+
+> **You can interact with the table** \
+>   - **Group by**: select the variable you want to group by \
+>   - **Filter**: search for a value in the boxes under the column name \
+>   - **Search**: search entire table using the `Search` box in top-right \
+>   - **Sort columns**: click the name of the column \
+>   - **Resize columns**: pull the column borders to resize column width \
+>   - **Expand**: Click the expand button to see notes from community \
+
+
+```{r}
+library(htmltools)
+
+htmltools::browsable(
+  tagList(
+    div(tags$label("Group by", `for` = "faculty-grouping-select")),
+    tags$select(
+      id = "faculty-grouping-select",
+      onchange = "Reactable.setGroupBy('faculty-grouping-table', this.value ? [this.value] : [])",
+      tags$option("None", value = ""),
+      lapply(
+        c("location", "institution", "position_type", "rank", "subject_area"), 
+        tags$option
       )
-    },
-    striped = TRUE,
-    highlight = TRUE,
-    bordered = TRUE,
-    showPageSizeOptions = TRUE,
-    theme = reactable::reactableTheme(
-      borderColor = "#dfe2e5",
-      stripedColor = "#f6f8fa",
-      highlightColor = "#FDBF6F",
-      cellPadding = "8px 12px"
     ),
-    defaultPageSize = 10,
-    groupBy = c("location")
+
+    tags$hr("aria-hidden" = "true"),
+
+    faculty_permanent |>
+      select(
+        location,
+        institution,
+        timestamp,
+        position_type,
+        rank,
+        subject_area,
+        review_date,
+        url
+      ) |> 
+      filter(
+        !if_any(
+          everything(),
+          ~ is.na(.x) | trimws(.x) == ""
+        )
+      ) |>
+      reactable::reactable(
+        style = list(fontFamily = "Work Sans, sans-serif", fontSize = "14px"),
+        sortable = TRUE,
+        resizable = TRUE,
+        filterable = TRUE,
+        searchable = TRUE,
+        columns = list(
+          url = reactable::colDef(
+            cell = function(value) {
+              htmltools::tags$a(
+                href = value, target = "_blank", rel = "noopener noreferrer", value
+              )
+            },
+            minWidth = 60,
+            sortable = FALSE,
+            filterable = FALSE
+          ),
+          institution = reactable::colDef(minWidth = 180),
+          timestamp = reactable::colDef(minWidth = 80),
+          review_date = reactable::colDef(minWidth = 80),
+          subject_area = reactable::colDef(minWidth = 160),
+          location = reactable::colDef(minWidth = 150),
+          rank = reactable::colDef(minWidth = 140)
+        ),
+        rowStyle = function(index) {
+          list(height = "100px", whiteSpace = "normal") # Sets height to 50px for all rows
+        },
+        details = function(index) {
+          htmltools::div(
+            style = "padding: 10px;",
+            htmltools::tagList(
+              "More info: ",
+              htmltools::tags$br(),
+              htmltools::tags$br(),
+              "[Last updated on]",
+              htmltools::tags$br(),
+              if_else(
+                is.na(faculty_permanent$last_update[index]),
+                "not available",
+                as.character(faculty_permanent$last_update[index])
+              ),
+              htmltools::tags$br(),
+              htmltools::tags$br(),
+              "[Notes]",
+              htmltools::tags$br(),
+              if_else(
+                is.na(faculty_permanent$notes[index]),
+                "not available",
+                faculty_permanent$notes[index]
+              )
+            )
+          )
+        },
+        striped = TRUE,
+        highlight = TRUE,
+        bordered = TRUE,
+        showPageSizeOptions = TRUE,
+        theme = reactable::reactableTheme(
+          borderColor = "#dfe2e5",
+          stripedColor = "#f6f8fa",
+          highlightColor = "#FDBF6F",
+          cellPadding = "8px 12px"
+        ),
+        defaultPageSize = 10,
+        elementId = "faculty-grouping-table"
+      )
   )
+)
 ```
 
 # Postdoc Jobs
 
 ```{r}
-postdoc |>
-  select(
-    - notes,
-    - last_update
-  ) |>
-  filter(
-    !if_any(
-      everything(),
-      ~ is.na(.x) | trimws(.x) == ""
-    )
-  ) |>
-  # mutate(
-  #   details = NA
-  # ) |>
-  reactable::reactable(
-    style = list(fontFamily = "Work Sans, sans-serif", fontSize = "14px"),
-    sortable = TRUE,
-    resizable = TRUE,
-    filterable = TRUE,
-    searchable = TRUE,
-    columns = list(
-      url = reactable::colDef(
-        cell = function(value) {
-          htmltools::tags$a(href = value, target = "_blank", rel = "noopener noreferrer", value)
-        },
-        minWidth = 60,
-        sortable = FALSE,
-        filterable = FALSE
-      ),
-      institution = reactable::colDef(minWidth = 200),
-      timestamp = reactable::colDef(minWidth = 80),
-      review_date = reactable::colDef(minWidth = 80),
-      subject_area = reactable::colDef(minWidth = 160),
-      location = reactable::colDef(minWidth = 140),
-      pi = reactable::colDef(minWidth = 140)
-      # last_update = reactable::colDef(minWidth = 80)
-      # details = reactable::colDef(
-      #   name = "",
-      #   sortable = FALSE,
-      #   cell = function() htmltools::tags$button("Show details")
-      # )
-    ),
-    rowStyle = function(index) {
-      list(height = "100px", whiteSpace = "normal") # Sets height to 50px for all rows
-    },
-    # onClick = htmlwidgets::JS("function(rowInfo, column) {
-    # // Only handle click events on the 'details' column
-    # if (column.id !== 'details') {
-    #   return
-    # }
-    #
-    # // Display an alert dialog with details for the row
-    # window.alert('Details for row ' + rowInfo.index + ':\\n' + JSON.stringify(rowInfo.values, null, 2))
-    #
-    # // Send the click event to Shiny, which will be available in input$show_details
-    # // Note that the row index starts at 0 in JavaScript, so we add 1
-    # if (window.Shiny) {
-    #   Shiny.setInputValue('show_details', { index: rowInfo.index + 1 }, { priority: 'event' })
-    #   }
-    # }"),
-    details = function(index) {
-      htmltools::div(
-        style = "padding: 10px;",
-        htmltools::tagList(
-          "More info: ",
-          htmltools::tags$br(),
-          htmltools::tags$br(),
-          "[Last updated on]",
-          htmltools::tags$br(),
-          if_else(
-            is.na(postdoc$last_update[index]),
-            "not available",
-            as.character(postdoc$last_update[index])
-          ),
-          htmltools::tags$br(),
-          htmltools::tags$br(),
-          "[Notes]",
-          htmltools::tags$br(),
-          if_else(
-            is.na(postdoc$notes[index]),
-            "not available",
-            postdoc$notes[index]
-          )
-        )
+
+htmltools::browsable(
+  tagList(
+    div(tags$label("Group by", `for` = "postdoc-grouping-select")),
+    tags$select(
+      id = "postdoc-grouping-select",
+      onchange = "Reactable.setGroupBy('postdoc-grouping-table', this.value ? [this.value] : [])",
+      tags$option("None", value = ""),
+      lapply(
+        c("location", "institution", "subject_area", "pi"), 
+        tags$option
       )
-    },
-    striped = TRUE,
-    highlight = TRUE,
-    bordered = TRUE,
-    showPageSizeOptions = TRUE,
-    theme = reactable::reactableTheme(
-      borderColor = "#dfe2e5",
-      stripedColor = "#f6f8fa",
-      highlightColor = "#FDBF6F",
-      cellPadding = "8px 12px"
     ),
-    defaultPageSize = 10,
-    groupBy = c("location")
+
+    tags$hr("aria-hidden" = "true"),
+    
+    
+    postdoc |>
+      select(
+        - notes,
+        - last_update
+      ) |>
+      filter(
+        !if_any(
+          everything(),
+          ~ is.na(.x) | trimws(.x) == ""
+        )
+      ) |>
+      reactable::reactable(
+        style = list(fontFamily = "Work Sans, sans-serif", fontSize = "14px"),
+        sortable = TRUE,
+        resizable = TRUE,
+        filterable = TRUE,
+        searchable = TRUE,
+        columns = list(
+          url = reactable::colDef(
+            cell = function(value) {
+              htmltools::tags$a(
+                href = value, target = "_blank", rel = "noopener noreferrer", value
+              )
+            },
+            minWidth = 60,
+            sortable = FALSE,
+            filterable = FALSE
+          ),
+          institution = reactable::colDef(minWidth = 200),
+          timestamp = reactable::colDef(minWidth = 80),
+          review_date = reactable::colDef(minWidth = 80),
+          subject_area = reactable::colDef(minWidth = 160),
+          location = reactable::colDef(minWidth = 140),
+          pi = reactable::colDef(minWidth = 140)
+        ),
+        rowStyle = function(index) {
+          list(height = "100px", whiteSpace = "normal") # Sets height to 50px for all rows
+        },
+        details = function(index) {
+          htmltools::div(
+            style = "padding: 10px;",
+            htmltools::tagList(
+              "More info: ",
+              htmltools::tags$br(),
+              htmltools::tags$br(),
+              "[Last updated on]",
+              htmltools::tags$br(),
+              if_else(
+                is.na(postdoc$last_update[index]),
+                "not available",
+                as.character(postdoc$last_update[index])
+              ),
+              htmltools::tags$br(),
+              htmltools::tags$br(),
+              "[Notes]",
+              htmltools::tags$br(),
+              if_else(
+                is.na(postdoc$notes[index]),
+                "not available",
+                postdoc$notes[index]
+              )
+            )
+          )
+        },
+        striped = TRUE,
+        highlight = TRUE,
+        bordered = TRUE,
+        showPageSizeOptions = TRUE,
+        theme = reactable::reactableTheme(
+          borderColor = "#dfe2e5",
+          stripedColor = "#f6f8fa",
+          highlightColor = "#FDBF6F",
+          cellPadding = "8px 12px"
+        ),
+        defaultPageSize = 10,
+        elementId = "postdoc-grouping-table"
+      )
   )
+)
 ```
 
