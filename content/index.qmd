@@ -89,7 +89,7 @@ postdoc <- googlesheets4::read_sheet(
 ```{r}
 faculty_permanent |> 
   filter(
-    timestamp == today
+    timestamp > today - 1
   ) |> 
   select(
     location,
@@ -106,7 +106,7 @@ faculty_permanent |>
 ```{r}
 postdoc |> 
   filter(
-    timestamp == today
+    timestamp > today - 1
   ) |> 
   select(
     location,
