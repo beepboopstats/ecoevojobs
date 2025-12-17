@@ -19,7 +19,7 @@ today <- Sys.Date()
 dttm <- pretty_datetime(Sys.time())
 ```
 
-Last updated on `r dttm`
+Updated on `r dttm` Arizona time
 
 > Displaying the information related to Ecology and Evolutionary Biology Jobs 
 posted and maintained on [__ecoevojobs.net__ googlesheet](`r link`).
@@ -89,7 +89,7 @@ postdoc <- googlesheets4::read_sheet(
 ```{r}
 faculty_permanent |> 
   filter(
-    timestamp > today - 1
+    timestamp >= today - 1
   ) |> 
   select(
     location,
@@ -106,7 +106,7 @@ faculty_permanent |>
 ```{r}
 postdoc |> 
   filter(
-    timestamp > today - 1
+    timestamp >= today - 1
   ) |> 
   select(
     location,
