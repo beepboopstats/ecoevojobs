@@ -1,0 +1,196 @@
+---
+title: "Mol-Cell-Dev-Bio Jobs"
+editor_options: 
+  chunk_output_type: console
+format:
+  html:
+    toc: false
+---
+
+```{r}
+library(dplyr)
+for (i in list.files(here::here("R"), full.names = TRUE)) source(i)
+
+googlesheets4::gs4_deauth()
+
+link <- "https://docs.google.com/spreadsheets/d/1h2IsuKz8p7zHgkPT2TdAOEDM7_xVpZDko0hK1kqM0r4/edit?gid=1646765677#gid=1646765677"
+
+today <- Sys.Date()
+dttm <- pretty_datetime(Sys.time())
+```
+
+Updated on `r dttm` Arizona time
+
+> Displaying the information related to Molecular, Cellular, and Developmental Biology Jobs 
+posted and maintained on [__molcellbiodevjobs__ googlesheet](`r link`).
+
+```{r}
+faculty_permanent <- googlesheets4::read_sheet(
+  link,
+  sheet = 1,
+  skip = 1
+) |>
+  janitor::clean_names() |>
+  mutate(
+    across(
+      c(timestamp, review_date, last_update),
+      ~ lubridate::as_date(.x)
+    )
+  ) |>
+  rename(
+    notes = notes_10
+  ) |> 
+  select(
+    timestamp:notes
+  ) |> 
+  mutate(
+    notes = purrr::map(notes, as.character)
+  ) |> 
+  tidyr::unnest(
+    cols = notes,
+    keep_empty = TRUE
+  ) |> 
+  arrange(
+    desc(timestamp)
+  )
+```
+
+::: {.callout-tip}
+# Latest jobs
+
+### This week's Faculty / Permanent jobs
+
+```{r}
+faculty_permanent |> 
+  filter(
+    timestamp >= today - 7
+  ) |> 
+  select(
+    location,
+    institution,
+    position_type,
+    rank,
+    subject_area
+  ) |> 
+  reactable::reactable()
+```
+
+
+See complete list and urls below.
+:::
+
+# Faculty / Permanent Jobs
+
+> **You can interact with the table** \
+>   - **Group by**: select the variable you want to group by \
+>   - **Filter**: search for a value in the boxes under the column name \
+>   - **Search**: search entire table using the `Search` box in top-right \
+>   - **Sort columns**: click the name of the column \
+>   - **Resize columns**: pull the column borders to resize column width \
+>   - **Expand**: Click the ▶️ expand button on the left to see notes from community \
+
+
+```{r}
+library(htmltools)
+
+htmltools::browsable(
+  tagList(
+    div(tags$label("Group by", `for` = "faculty-grouping-select")),
+    tags$select(
+      id = "faculty-grouping-select",
+      onchange = "Reactable.setGroupBy('faculty-grouping-table', this.value ? [this.value] : [])",
+      tags$option("None", value = ""),
+      lapply(
+        c("location", "institution", "position_type", "rank", "subject_area"), 
+        tags$option
+      )
+    ),
+
+    tags$hr("aria-hidden" = "true"),
+
+    faculty_permanent |>
+      select(
+        location,
+        institution,
+        timestamp,
+        position_type,
+        rank,
+        subject_area,
+        review_date,
+        url
+      ) |> 
+      filter(
+        !if_any(
+          everything(),
+          ~ is.na(.x) | trimws(.x) == ""
+        )
+      ) |>
+      reactable::reactable(
+        style = list(fontFamily = "Work Sans, sans-serif", fontSize = "14px"),
+        sortable = TRUE,
+        resizable = TRUE,
+        filterable = TRUE,
+        searchable = TRUE,
+        columns = list(
+          url = reactable::colDef(
+            cell = function(value) {
+              htmltools::tags$a(
+                href = value, target = "_blank", rel = "noopener noreferrer", value
+              )
+            },
+            minWidth = 60,
+            sortable = FALSE,
+            filterable = FALSE
+          ),
+          institution = reactable::colDef(minWidth = 180),
+          timestamp = reactable::colDef(minWidth = 80),
+          review_date = reactable::colDef(minWidth = 80),
+          subject_area = reactable::colDef(minWidth = 160),
+          location = reactable::colDef(minWidth = 150),
+          rank = reactable::colDef(minWidth = 140)
+        ),
+        rowStyle = function(index) {
+          list(height = "100px", whiteSpace = "normal") # Sets height to 50px for all rows
+        },
+        details = function(index) {
+          htmltools::div(
+            style = "padding: 10px;",
+            htmltools::tagList(
+              "More info: ",
+              htmltools::tags$br(),
+              htmltools::tags$br(),
+              "[Last updated on]",
+              htmltools::tags$br(),
+              if_else(
+                is.na(faculty_permanent$last_update[index]),
+                "not available",
+                as.character(faculty_permanent$last_update[index])
+              ),
+              htmltools::tags$br(),
+              htmltools::tags$br(),
+              "[Notes]",
+              htmltools::tags$br(),
+              if_else(
+                is.na(faculty_permanent$notes[index]),
+                "not available",
+                faculty_permanent$notes[index]
+              )
+            )
+          )
+        },
+        striped = TRUE,
+        highlight = TRUE,
+        bordered = TRUE,
+        showPageSizeOptions = TRUE,
+        theme = reactable::reactableTheme(
+          borderColor = "#dfe2e5",
+          stripedColor = "#f6f8fa",
+          highlightColor = "#FDBF6F",
+          cellPadding = "8px 12px"
+        ),
+        defaultPageSize = 10,
+        elementId = "faculty-grouping-table"
+      )
+  )
+)
+```
